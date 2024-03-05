@@ -19,7 +19,7 @@ class ProjectController extends Controller
     {
         $projects = Project::all();
         $types = Type::all();
-        return view('auth.dashboard', compact('projects', 'type'));
+        return view('auth.dashboard', compact('projects', 'types'));
     }
 
     /**
@@ -29,7 +29,8 @@ class ProjectController extends Controller
      */
     public function create()
     {
-        return view('projects.create');
+        $types = Type::all();
+        return view('projects.create', compact('types'));
     }
 
     /**
@@ -43,12 +44,14 @@ class ProjectController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
+            'type_id' => 'required|exists:types,id',
         ]);
 
         Project::create($request->all());
 
-        return redirect()->route('projects.index');
+        return redirect()->route('projects.index')->with('success', 'Project created successfully');
     }
+
     /**
      * Display the specified resource.
      *
@@ -57,25 +60,27 @@ class ProjectController extends Controller
      */
     public function show($id)
     {
-        //
+        $project = Project::with('type')->findOrFail($id);
+        return view('projects.show', compact('project'));
     }
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  int  $id
+     * @param  \App\Models\Project  $project
      * @return \Illuminate\Http\Response
      */
     public function edit(Project $project)
     {
-        return view('projects.edit', compact('project'));
+        $types = Type::all();
+        return view('projects.edit', compact('project', 'types'));
     }
 
     /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param  \App\Models\Project  $project
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, Project $project)
@@ -83,11 +88,12 @@ class ProjectController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
+            'type_id' => 'required|exists:types,id',
         ]);
 
-        $project->update($request->all()); // Aggiorna il progetto con i nuovi dati
+        $project->update($request->all());
 
-        return redirect()->route('projects.index'); // Reindirizza all'elenco dei progetti
+        return redirect()->route('projects.index')->with('success', 'Project updated successfully');
     }
 
     /**
@@ -100,7 +106,7 @@ class ProjectController extends Controller
     {
         $project = Project::findOrFail($id);
         $project->delete();
-    
-        return redirect('/dashboard')->with('success', 'Project deleted successfully');
+
+        return redirect()->route('projects.index')->with('success', 'Project deleted successfully');
     }
 }
