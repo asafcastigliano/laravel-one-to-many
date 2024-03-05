@@ -26,4 +26,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::resource('projects', ProjectController::class);
+    Route::resource('types', ProjectController::class);
 });
